@@ -1,3 +1,4 @@
+import axios from "axios";
 import NextAuth from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -14,14 +15,25 @@ export default NextAuth({
           email: string;
           password: string;
         };
-        const user = {
-          id: "999999",
-          name: "J Smith",
-          email: "test@example.com",
-        };
-        if (user) {
+        try {
+          const res = await axios.post(
+            `https://dev-457931.okta.com/oauth2/aushd4c95QtFHsfWt4x6/v1/token?scope=offline_access&grant_type=password&username=${email}&password=${password}&client_id=0oahdhjkutaGcIK2M4x6`,
+            {},
+            {
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+            }
+          );
+          const user = {
+            id: "999999",
+            name: "J Smith",
+            email: "test@example.com",
+            accessToken: res.data.access_token,
+            refreshToken: res.data.refresh_token,
+          };
           return user;
-        } else {
+        } catch (error) {
           return null;
         }
       },
