@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/utils/axios";
+import { AxiosError } from "axios";
 import NextAuth from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -30,8 +31,13 @@ export default NextAuth({
           );
 
           return res.data;
-        } catch (error) {
-          return null;
+        } catch (err) {
+          const error = err as AxiosError;
+          if (error.response) {
+            throw new Error((error.response.data as any).message);
+          } else {
+            throw new Error(error.message);
+          }
         }
       },
     }),
