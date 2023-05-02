@@ -4,13 +4,12 @@ import { axiosInstance } from "../axios";
 import { useRefreshToken } from "./useRefreshToken";
 
 const useAxiosInstance = () => {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const refreshToken = useRefreshToken();
 
   useEffect(() => {
     const requestIntercept = axiosInstance.interceptors.request.use(
       (config) => {
-        debugger;
         if (!config.headers["Authorization"]) {
           config.headers[
             "Authorization"
@@ -28,6 +27,7 @@ const useAxiosInstance = () => {
         if (error?.response?.status === 401 && !prevRequest?.sent) {
           prevRequest.sent = true;
           await refreshToken();
+          await update();
           prevRequest.headers[
             "Authorization"
           ] = `Bearer ${session?.user.accessToken}`;

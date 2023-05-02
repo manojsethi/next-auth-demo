@@ -1,4 +1,4 @@
-import axios from "axios";
+import { axiosInstance } from "@/utils/axios";
 import NextAuth from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -16,23 +16,20 @@ export default NextAuth({
           password: string;
         };
         try {
-          const res = await axios.post(
-            `https://dev-457931.okta.com/oauth2/aushd4c95QtFHsfWt4x6/v1/token?scope=offline_access&grant_type=password&username=${email}&password=${password}&client_id=0oahdhjkutaGcIK2M4x6`,
-            {},
+          const res = await axiosInstance.post(
+            `/auth/signin`,
+            {
+              email,
+              password,
+            },
             {
               headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/json",
               },
             }
           );
-          const user = {
-            id: "999999",
-            name: "J Smith",
-            email: "test@example.com",
-            accessToken: res.data.access_token,
-            refreshToken: res.data.refresh_token,
-          };
-          return user;
+
+          return res.data;
         } catch (error) {
           return null;
         }
@@ -44,15 +41,24 @@ export default NextAuth({
       session.user = token.user;
       return session;
     },
-    jwt: async ({ token, user, account }): Promise<JWT> => {
+    jwt: async ({ token, user, account, session, trigger }): Promise<JWT> => {
       if (user) token.user = user;
+      if (trigger === "update" && session) {
+        if (session.accessToken) {
+          token.user.accessToken = session.accessToken;
+        }
+        if (session.accessToken) {
+          token.user.refreshToken = session.refreshToken;
+        }
+      }
       return token;
     },
   },
   session: {
     strategy: "jwt",
   },
-  secret: "thisismyrandomsecret",
+  secret:
+    "3cc80b75056bd4ab892c977d6b9f7bd2bab0d52e487254463522a09e6f116c1b69a1d8f31ea5100e2efbffc2840f43d1",
   pages: {
     signIn: "/auth/signin",
   },

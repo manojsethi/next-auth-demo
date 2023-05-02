@@ -1,25 +1,28 @@
-import { signIn, useSession } from "next-auth/react";
-import { axiosInstance } from "../axios";
+import axios from "axios";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 export const useRefreshToken = () => {
   const { data: session, update } = useSession();
-
   const refreshToken = async () => {
-    const res = await axiosInstance.post("/auth/refresh", {
-      refresh: session?.user.refreshToken,
-    });
-
-    if (session) session.user.accessToken = res.data.accessToken;
-    if (session)
-      update({
-        ...session,
-        user: {
-          ...session.user,
-          accessToken: res.data.access_token,
-          refreshToken: res.data.refresh_token,
+    try {
+      const res = await axios.get("http://localhost:3000/auth/refresh", {
+        headers: {
+          Authorization: "Bearer " + session?.user.refreshToken,
         },
       });
-    else signIn();
+      if (session) {
+        session.user.accessToken = res.data.accessToken;
+        session.user.refreshToken = res.data.refreshToken;
+        await update({
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
+        });
+      } else signIn();
+    } catch (err) {
+      signOut();
+    }
+
+    //if (session) session.user.accessToken = res.data.accessToken;
   };
   return refreshToken;
 };

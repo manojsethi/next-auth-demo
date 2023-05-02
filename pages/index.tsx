@@ -1,5 +1,5 @@
 import useAxiosInstance from "@/utils/hooks/useAxiosInstance";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -19,14 +19,21 @@ export default function Home() {
       <p
         className="p-5 bg-green-300 rounded-md"
         onClick={async () => {
-          let airlines = await axios.get("/airlines");
-          debugger;
+          let airlines = await axios.get("/users");
           setMe(airlines.data);
         }}
       >
         Get My Info
       </p>
-      {me && <div>{JSON.stringify(me)}</div>}
+      <div className="max-w-sm break-words">
+        {JSON.stringify(session?.user.accessToken)}
+      </div>
+      <div
+        className="bg-black text-white max-w-sm break-words"
+        onClick={() => signOut()}
+      >
+        Sign Out
+      </div>
     </>
   );
 }
